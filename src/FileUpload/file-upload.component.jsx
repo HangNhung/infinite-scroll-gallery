@@ -26,6 +26,7 @@ const FileUpload = ({
 }) => {
   const fileInputField = useRef(null);
   const [files, setFiles] = useState({});
+  const [draggedItem, setDraggedItem] = useState(null);
 
   const handleUploadBtnClick = () => {
     fileInputField.current.click();
@@ -95,6 +96,34 @@ const FileUpload = ({
     }
   };
 
+  // drag and drop images
+  const startDragging = (e, index) => {
+    setDraggedItem(index);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/html", e.target.parentNode);
+    e.dataTransfer.setDragImage(e.target.parentNode, 20, 20);
+  };
+
+  const onDragOver = (index) => {
+    let arrFiles = [];
+    for (let file of Object.entries(files)) {
+      arrFiles.push(file);
+    }
+    const draggedOverItem = arrFiles[draggedItem];
+    // if the item is dragged over itself, ignore
+    if (index === draggedItem) {
+      return;
+    }
+    const items = arrFiles.filter((item) => item !== draggedOverItem);
+    // add the dragged item after the dragged over item
+    items.splice(index, 0, draggedOverItem);
+    setFiles(Object.fromEntries(items));
+  };
+
+  const onDragEnd = () => {
+    setDraggedItem(null);
+  };
+
   return (
     <>
       <FileUploadContainer
@@ -128,7 +157,12 @@ const FileUpload = ({
             let isImageFile = file.type.split("/")[0] === "image";
             return (
               <PreviewContainer key={fileName}>
-                <div>
+                <div
+                  draggable="true"
+                  onDragStart={(e) => startDragging(e, index)}
+                  onDragOver={() => onDragOver(index)}
+                  onDragEnd={onDragEnd}
+                >
                   {isImageFile && (
                     <ImagePreview
                       src={URL.createObjectURL(file)}
