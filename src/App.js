@@ -1,34 +1,22 @@
-import React, { useState } from "react";
-import "./App.css";
-import FileUpload from "./FileUpload/file-upload.component";
-// import { Collage } from "./CollageComponent";
+import React from "react";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+import Collage from "./Collage/collage.component";
+import FileUploadContainer from "./FileUpload/file-upload.container";
 
 function App() {
-  // return <Collage />;
-  const [newCollection, setNewCollection] = useState({
-    collectionImages: [],
-  });
-
-  const upadteUploadedFiles = (files) => {
-    setNewCollection({ ...newCollection, collectionImages: files });
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-  };
-
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
-        <FileUpload
-          accept=".jpg,.png,jpeg"
-          label="Collection Image(s)"
-          multiple
-          updateFilesCb={upadteUploadedFiles}
-        ></FileUpload>
-        <button type="submit">Create New Collection</button>
-      </form>
-    </div>
+    <Router>
+      <div>
+        <Switch>
+          <Route path="/file-upload">
+            <FileUploadContainer />
+          </Route>
+          <Route path="/">
+            <Collage />
+          </Route>
+        </Switch>
+      </div>
+    </Router>
   );
 }
 
