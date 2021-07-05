@@ -35,17 +35,20 @@ const FileUpload = ({
   const convertNestedObjectArray = (nestedObj) =>
     Object.keys(nestedObj).map((key) => nestedObj[key]);
 
-  const callUpdateFileCb = (files) => {
+  const callUpdateFileCb = () => {
     const filesAsArray = convertNestedObjectArray(files);
     updateFilesCb(filesAsArray);
   };
 
   // returns an object where the key is the file name and the value is the File object
   const addNewFiles = (newFiles) => {
-    for (let file of newFiles) {
+    let size = Object.keys(files).length;
+    // only allow upload 5 images
+    for (let index = 0; index < 5 - size && index < newFiles.length; index++) {
+      let file = newFiles[index];
       if (file.size <= maxFileSizeInBytes) {
         if (!otherProps.multiple) {
-          return { file };
+          return file;
         }
         files[file.name] = file;
       }

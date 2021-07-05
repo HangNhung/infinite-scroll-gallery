@@ -11,8 +11,8 @@ import {
 } from "./collage.styles";
 import { Link } from "react-router-dom";
 
-const UnsplashImage = ({ url, key, sizeText }) => (
-  <ImageItem sizeText={sizeText} key={key}>
+const UnsplashImage = ({ url, index, sizeText }) => (
+  <ImageItem sizeText={sizeText} key={index}>
     <Image src={url} alt="hbnhung" />
   </ImageItem>
 );
@@ -59,7 +59,7 @@ let Collage = () => {
           {loaded
             ? images.map((image, index) => (
                 <UnsplashImage
-                  key={index}
+                  index={index}
                   url={image.urls.regular}
                   sizeText={`${
                     image.width / image.height > 1 ? "landscape" : "portrait"
