@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import FileUpload from "./file-upload.component";
-import axios from "axios";
-
+import { storage } from "../config";
 const FileUploadContainer = () => {
-  const [images, setImages] = useState([]);
+  const [images, setImages] = useState(null);
 
   const upadteUploadedFiles = (files) => {
     setImages(files);
@@ -12,60 +11,35 @@ const FileUploadContainer = () => {
   const handleSubmit = (event) => {
     event.preventDefault();
     // handle upload images
-    let formData = new FormData();
-    // console.log("images", images);
+    const promises = [];
     for (let image of images) {
-      formData.append("image", image);
-      formData.append("name", image.name);
-    }
-
-    // return url image in azure container
-    axios({
-      url: "https://lk-backend-dev.azurewebsites.net/api/blobs/uploadimg",
-      method: "POST",
-      headers: {
-        authorization:
-          "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmYW1pbHlfbmFtZSI6InNwVXNlciIsIm5hbWVpZCI6IjEyIiwiZW1haWwiOiIxIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiU3VwZXIgVXNlciIsImp0aSI6ImQ2YzhkMDNhLWRjYzQtNGNmNC1iNjNmLTM1MmQ2ZTAyZmY1MSIsImV4cCI6MTYyNTUxNzI2MiwiaXNzIjoid3d3LmxlbmdrZW5nLmFzaWEiLCJhdWQiOiJ3d3cubGVuZ2tlbmcuYXNpYSJ9.suQ7-YCG6-s8kJAEkfS9RRvb_Tm2QqLH6BKBI_0oIfY",
-      },
-      data: formData,
-    }).then(
-      (res) => {
-        // res.data {key: value}
-        // save link into database
-        const imagesArr = res.data;
-        let requestBody = [];
-        for (let [index, item] of imagesArr.entries()) {
-          const imageData = {
-            id: 0,
-            billboardId: 80,
-            url: item.value,
-            typeName: "Detail",
-            order: index + 1,
-            lastUpdated: new Date(),
-          };
-          requestBody.push(imageData);
+      // the return value will be a Promise
+      const uploadTask = storage.ref().child(`cat/${image.name}`).put(image);
+      promises.push(uploadTask);
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.log(Math.round(progress));
+        },
+        (error) => {
+          console.log(error);
+        },
+        () => {
+          uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+            console.log(downloadURL);
+          });
         }
-        axios({
-          url: "https://lk-backend-dev.azurewebsites.net/api/Billboard/display",
-          method: "POST",
-          headers: {
-            authorization:
-              "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmYW1pbHlfbmFtZSI6InNwVXNlciIsIm5hbWVpZCI6IjEyIiwiZW1haWwiOiIxIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiU3VwZXIgVXNlciIsImp0aSI6ImQ2YzhkMDNhLWRjYzQtNGNmNC1iNjNmLTM1MmQ2ZTAyZmY1MSIsImV4cCI6MTYyNTUxNzI2MiwiaXNzIjoid3d3LmxlbmdrZW5nLmFzaWEiLCJhdWQiOiJ3d3cubGVuZ2tlbmcuYXNpYSJ9.suQ7-YCG6-s8kJAEkfS9RRvb_Tm2QqLH6BKBI_0oIfY",
-          },
-          data: requestBody,
-        }).then(
-          (res) => {
-            console.log("res upload image", res);
-          },
-          (err) => {
-            console.error(" upload image", err);
-          }
-        );
-      },
-      (err) => {
-        console.error("err", err);
-      }
-    );
+      );
+    }
+    Promise.all(promises)
+      .then(() => {
+        alert("upload hình thành công");
+      })
+      .catch(() => {
+        alert("upload hình bị lỗi");
+      });
   };
 
   return (

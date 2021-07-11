@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import Collage from "./Collage/collage.component";
 import FileUploadContainer from "./FileUpload/file-upload.container";
+// require("dotenv").config();
 
 function App() {
   return (

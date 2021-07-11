@@ -56,7 +56,12 @@ const FileUpload = ({
     return { ...files };
   };
 
+  const handleOnLoadImages = (e) => {
+    console.log("e load");
+  };
+
   const handleNewFileUpload = (e) => {
+    console.log("new file upload");
     const { files: newFiles } = e.target;
     if (newFiles.length) {
       let updatedFiles = addNewFiles(newFiles);
@@ -147,6 +152,7 @@ const FileUpload = ({
           onChange={handleNewFileUpload}
           title=""
           value=""
+          onLoad={handleOnLoadImages}
           {...otherProps}
         />
       </FileUploadContainer>
@@ -170,6 +176,7 @@ const FileUpload = ({
                     <ImagePreview
                       src={URL.createObjectURL(file)}
                       alt={`file preview ${index}`}
+                      accept="image/x-png,image/jpeg"
                     />
                   )}
                   <FileMetaData isImageFile={isImageFile}>

@@ -1,4 +1,3 @@
-import axios from "axios";
 import React from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import {
@@ -10,6 +9,7 @@ import {
   Button,
 } from "./collage.styles";
 import { Link } from "react-router-dom";
+import { storage } from "../config";
 
 const UnsplashImage = ({ url, index, sizeText }) => (
   <ImageItem sizeText={sizeText} key={index}>
@@ -21,17 +21,17 @@ let Collage = () => {
   const [images, setImages] = React.useState([]);
   const [loaded, setIsLoaded] = React.useState(false);
 
-  const fetchImages = (count = 10) => {
-    const apiRoot = "https://api.unsplash.com";
-    const accessKey = "KwBdJK7CXpzN-HvCWU52SEDa45t8bBe2G-mECBYsc-A";
+  const fetchImages = async () => {
+    const storageRef = storage.ref();
+    let result = await storageRef.child("cat").listAll();
+    /// map() array of the imageRef.getDownloadURL() promises
+    let urlPromises = result.items.map((imageRef) => imageRef.getDownloadURL());
 
-    axios
-      .get(`${apiRoot}/photos?client_id=${accessKey}&count=${count}`)
-      .then((res) => {
-        // console.log("res", res);
-        setImages([...images, ...res.data]);
-        setIsLoaded(true);
-      });
+    // return all resolved promises
+    return Promise.all(urlPromises).then((images) => {
+      setIsLoaded(true);
+      setImages(images);
+    });
   };
 
   React.useEffect(() => {
@@ -46,29 +46,22 @@ let Collage = () => {
         </Link>
         <Title>Infinite Scroll Unsplash Code Challenge</Title>
       </div>
-      <InfiniteScroll
-        dataLength={images}
-        next={() => fetchImages(20)}
-        hasMore={true}
-        loader={
-          null
-          // <img src={require("../src/sand-clock.png")} alt="loading" />
-        }
-      >
+      <div>
         <ImageGrid>
           {loaded
             ? images.map((image, index) => (
                 <UnsplashImage
                   index={index}
-                  url={image.urls.regular}
-                  sizeText={`${
-                    image.width / image.height > 1 ? "landscape" : "portrait"
-                  }`}
+                  url={image}
+                  // sizeText={`${
+                  //   image.width / image.height > 1 ? "landscape" : "portrait"
+                  // }`}
+                  sizeText={"landscape"}
                 />
               ))
             : ""}
         </ImageGrid>
-      </InfiniteScroll>
+      </div>
     </Container>
   );
 };
